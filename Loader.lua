@@ -1,7 +1,7 @@
 -- PICKA'S HUB loader + full API demo
 -- 1) Upload PickasHub.lua to your GitHub repo.  2) Paste this whole script into your executor.
 -- Library v3.0.0. Every API of the library is used below, so you can copy any part into your own script.
-local URL = "https://raw.githubusercontent.com/PickasHub/Library.Source/refs/heads/main/PickasHub.lua"
+local URL = "https://raw.githubusercontent.com/pickapicksmm/Source/refs/heads/main/Script/PickasHub.lua"
 
 local function fail(msg)
     msg = "PICKA'S HUB ERROR:\n" .. tostring(msg)
