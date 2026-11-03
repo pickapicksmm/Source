@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12141c">
+<title>Luau Pad</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#12141c;--panel:#1a1d28;--line:#2a2f40;--text:#d9deed;--muted:#7d86a3;--accent:#6ea8ff;--accent-ink:#0b1020;
+  --k:#c792ea;--s:#a5e075;--n:#ffb86c;--c:#5c6685;--b:#5ccfe6;--f:#82aaff;
+  --fs:16px;
+  --ui:'Sora',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:light){
+  :root:not([data-theme="dark"]){--bg:#f6f7fb;--panel:#ffffff;--line:#dfe3ee;--text:#232842;--muted:#6b7392;--accent:#2f6fe4;--accent-ink:#ffffff;
+    --k:#8e3fc4;--s:#3d8b1f;--n:#c4590a;--c:#98a0ba;--b:#0b8aa3;--f:#2f5fd0}
+}
+:root[data-theme="light"]{--bg:#f6f7fb;--panel:#ffffff;--line:#dfe3ee;--text:#232842;--muted:#6b7392;--accent:#2f6fe4;--accent-ink:#ffffff;
+  --k:#8e3fc4;--s:#3d8b1f;--n:#c4590a;--c:#98a0ba;--b:#0b8aa3;--f:#2f5fd0}
+@media (pointer:fine){:root{--fs:14px}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:var(--ui)}
+body{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+
+header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:15px;letter-spacing:.01em;margin-right:auto;display:flex;align-items:center;gap:8px}
+.brand svg{width:22px;height:22px;flex:none}
+.btn{padding:8px 12px;border-radius:8px;border:1px solid var(--line);font-size:13px;font-weight:500;min-height:36px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+
+.tabs{display:flex;overflow-x:auto;background:var(--panel);border-bottom:1px solid var(--line);scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;padding:10px 14px;font-size:13px;color:var(--muted);border-bottom:2px solid transparent;font-family:var(--mono);white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.tab.add{color:var(--accent);font-weight:700}
+
+.editor{position:relative;flex:1;min-height:0;display:flex}
+.gutter{flex:none;min-width:3.2ch;padding:12px 8px 12px 10px;overflow:hidden;text-align:right;color:var(--muted);opacity:.7;font:var(--fs)/1.55 var(--mono);white-space:pre;user-select:none;background:var(--bg);border-right:1px solid var(--line)}
+.stack{position:relative;flex:1;min-width:0}
+.stack pre,.stack textarea{position:absolute;inset:0;margin:0;padding:12px 14px 40vh 12px;border:0;font:var(--fs)/1.55 var(--mono);tab-size:4;white-space:pre;letter-spacing:0;word-spacing:0}
+.stack pre{overflow:hidden;pointer-events:none;color:var(--text)}
+.stack textarea{background:transparent;color:transparent;caret-color:var(--accent);resize:none;overflow:auto;outline:none;-webkit-text-fill-color:transparent;-webkit-overflow-scrolling:touch}
+.stack textarea::selection{background:color-mix(in srgb,var(--accent) 35%,transparent);-webkit-text-fill-color:transparent}
+pre i{font-style:normal}
+.k{color:var(--k)}.s{color:var(--s)}.n{color:var(--n)}.c{color:var(--c);font-style:italic}.b{color:var(--b)}.f{color:var(--f)}
+
+.keys{display:none;gap:6px;padding:6px 8px;background:var(--panel);border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.keys::-webkit-scrollbar{display:none}
+@media (pointer:coarse){.keys{display:flex}}
+.keys button{flex:none;min-width:40px;height:40px;padding:0 10px;border-radius:8px;background:var(--bg);border:1px solid var(--line);font:600 16px var(--mono)}
+.keys button:active{background:var(--accent);color:var(--accent-ink)}
+
+footer{display:flex;gap:16px;padding:6px 12px;font:12px var(--mono);color:var(--muted);background:var(--panel);border-top:1px solid var(--line)}
+footer span:last-child{margin-left:auto}
+
+.scrim{position:fixed;inset:0;background:rgba(5,7,12,.55);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.scrim.open{display:flex}
+.sheet{width:100%;max-width:520px;max-height:78dvh;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:16px 16px 0 0;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet h2{margin:0;padding:16px 18px 10px;font-size:15px}
+.list{overflow:auto;padding:0 8px 10px}
+.item{display:block;width:100%;text-align:left;padding:12px 10px;border-radius:10px}
+.item:hover,.item:focus-visible{background:var(--bg)}
+.item b{display:block;font-size:14px;font-weight:500}
+.item small{display:block;margin-top:2px;color:var(--muted);font:12px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:16px}}
+
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:8px 14px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="6" fill="var(--accent)"/><path d="M8 7v8h5M16 7v10" stroke="var(--accent-ink)" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg>
+    Luau Pad
+  </div>
+  <button class="btn" id="bSnip">Snippets</button>
+  <button class="btn primary" id="bCopy">Copy</button>
+  <button class="btn" id="bMenu" aria-label="More actions">More</button>
+</header>
+
+<nav class="tabs" id="tabs" role="tablist" aria-label="Scripts"></nav>
+
+<main class="editor">
+  <div class="gutter" id="gutter" aria-hidden="true"></div>
+  <div class="stack">
+    <pre id="hl" aria-hidden="true"></pre>
+    <textarea id="ta" wrap="off" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" aria-label="Luau code"></textarea>
+  </div>
+</main>
+
+<div class="keys" id="keys" onpointerdown="event.preventDefault()"></div>
+<footer><span id="pos">Ln 1, Col 1</span><span id="cnt">0 chars</span><span>Luau</span></footer>
+
+<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true"><h2 id="sTitle"></h2><div class="list" id="sList"></div></div></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const ta=$("#ta"),hl=$("#hl"),gut=$("#gutter"),tabs=$("#tabs");
+const KEY="luau-pad:v1";
+
+/* ---------- highlighting ---------- */
+const KW=new Set("and break continue do else elseif end export false for function if in local nil not or repeat return then true type typeof until while".split(" "));
+const BI=new Set("game workspace script task print warn error assert pcall xpcall require pairs ipairs next select tostring tonumber setmetatable getmetatable rawget rawset table string math os coroutine buffer bit32 utf8 Instance Vector3 Vector2 CFrame Color3 UDim2 UDim Enum TweenInfo Random Ray Rect BrickColor NumberRange NumberSequence DateTime shared self".split(" "));
+const RE=/(--\[(=*)\[[\s\S]*?\]\2\]|--[^\n]*)|(\[(=*)\[[\s\S]*?\]\4\]|"(?:\\.|[^"\\\n])*"?|'(?:\\.|[^'\\\n])*'?|`(?:\\.|[^`\\])*`?)|(\b0[xX][\da-fA-F_]+|\b\d[\d_]*\.?\d*(?:[eE][+-]?\d+)?)|([A-Za-z_]\w*)/g;
+const esc=t=>t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+function highlight(src){
+  let out="",last=0,m;RE.lastIndex=0;
+  while((m=RE.exec(src))){
+    out+=esc(src.slice(last,m.index));
+    const t=m[0];let c="";
+    if(m[1]!==undefined)c="c";else if(m[3]!==undefined)c="s";else if(m[5]!==undefined)c="n";
+    else if(KW.has(t))c="k";else if(BI.has(t))c="b";else if(src[RE.lastIndex]==="(")c="f";
+    out+=c?'<i class="'+c+'">'+esc(t)+"</i>":esc(t);
+    last=RE.lastIndex;
+  }
+  return out+esc(src.slice(last))+"\n";
+}
+
+/* ---------- state ---------- */
+const SAMPLE='--!strict\nlocal Players = game:GetService("Players")\nlocal RunService = game:GetService("RunService")\n\nlocal function greet(player: Player)\n\tprint("Welcome, " .. player.Name)\nend\n\nPlayers.PlayerAdded:Connect(greet)\n\nRunService.Heartbeat:Connect(function(dt)\n\t-- runs every frame\nend)\n';
+let S={files:[{id:1,name:"main.lua",code:SAMPLE}],active:1,next:2,fs:null};
+try{const r=JSON.parse(localStorage.getItem(KEY)||"null");if(r&&r.files&&r.files.length)S=r}catch(e){}
+let saveT;const save=()=>{clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}},300)};
+const cur=()=>S.files.find(f=>f.id===S.active)||S.files[0];
+if(S.fs)document.documentElement.style.setProperty("--fs",S.fs+"px");
+
+/* ---------- render ---------- */
+function renderTabs(){
+  tabs.innerHTML="";
+  S.files.forEach(f=>{
+    const b=document.createElement("button");
+    b.className="tab";b.role="tab";b.textContent=f.name;
+    b.setAttribute("aria-selected",f.id===S.active);
+    b.onclick=()=>{S.active=f.id;load();save()};
+    tabs.appendChild(b);
+  });
+  const a=document.createElement("button");
+  a.className="tab add";a.textContent="+ New";a.onclick=newFile;tabs.appendChild(a);
+  const sel=tabs.querySelector('[aria-selected="true"]');if(sel)sel.scrollIntoView({inline:"nearest",block:"nearest"});
+}
+function paint(){
+  const v=ta.value;
+  hl.innerHTML=highlight(v);
+  const n=v.split("\n").length;
+  if(gut.dataset.n!=n){gut.textContent=Array.from({length:n},(_,i)=>i+1).join("\n");gut.dataset.n=n}
+  sync();status();
+}
+function sync(){hl.scrollTop=ta.scrollTop;hl.scrollLeft=ta.scrollLeft;gut.scrollTop=ta.scrollTop}
+function status(){
+  const p=ta.selectionStart,b=ta.value.slice(0,p).split("\n");
+  $("#pos").textContent="Ln "+b.length+", Col "+(b[b.length-1].length+1);
+  $("#cnt").textContent=ta.value.length+" chars";
+}
+function load(){ta.value=cur().code;renderTabs();paint();ta.scrollTop=0;ta.scrollLeft=0;sync()}
+ta.addEventListener("input",()=>{cur().code=ta.value;paint();save()});
+ta.addEventListener("scroll",sync);
+["keyup","click","select","focus"].forEach(e=>ta.addEventListener(e,status));
+
+/* ---------- editing helpers ---------- */
+function ins(text,back){
+  ta.focus();
+  let ok=false;
+  try{ok=document.execCommand("insertText",false,text)}catch(e){}
+  if(!ok){ta.setRangeText(text,ta.selectionStart,ta.selectionEnd,"end");ta.dispatchEvent(new Event("input"))}
+  if(back){const p=ta.selectionStart-back;ta.setSelectionRange(p,p)}
+  status();
+}
+const PAIRS={"(":")","[":"]","{":"}",'"':'"',"'":"'"};
+ta.addEventListener("keydown",e=>{
+  if(e.ctrlKey||e.metaKey||e.altKey)return;
+  const v=ta.value,s=ta.selectionStart,en=ta.selectionEnd;
+  if(e.key==="Tab"){e.preventDefault();ins("\t");return}
+  if(e.key==="Enter"){
+    e.preventDefault();
+    const ls=v.lastIndexOf("\n",s-1)+1,line=v.slice(ls,s);
+    const ind=line.match(/^[\t ]*/)[0];
+    const more=/(\bthen|\bdo|\belse|\brepeat|[{(]|\bfunction\b.*\))\s*$/.test(line);
+    ins("\n"+ind+(more?"\t":""));return;
+  }
+  if(PAIRS[e.key]){
+    if(s!==en){e.preventDefault();ins(e.key+v.slice(s,en)+PAIRS[e.key]);return}
+    const q=e.key==='"'||e.key==="'";
+    if(q&&v[s]===e.key){e.preventDefault();ta.setSelectionRange(s+1,s+1);return}
+    if(q&&/\w/.test(v[s-1]||""))return;
+    e.preventDefault();ins(e.key+PAIRS[e.key],1);return;
+  }
+  if(")]}".includes(e.key)&&v[s]===e.key&&s===en){e.preventDefault();ta.setSelectionRange(s+1,s+1)}
+});
+
+/* ---------- mobile key bar ---------- */
+[["Tab","\t"],["(",")"],["[","]"],["{","}"],['"','"'],["'","'"],["=",""],[".",""],[":",""],[",",""],["#",""],["~",""],["_",""],["-",""],["+",""],["<",""],[">",""],["/",""],["\\",""]].forEach(([k,close])=>{
+  const b=document.createElement("button");
+  b.textContent=k==="\t"?"Tab":k;b.setAttribute("aria-label",k==="\t"?"Tab":"Insert "+k);
+  b.onclick=()=>k==="Tab"?ins("\t"):(close&&close!=="\t"?ins(k+close,1):ins(k));
+  $("#keys").appendChild(b);
+});
+
+/* ---------- sheet ---------- */
+const scrim=$("#scrim");
+function sheet(title,items){
+  $("#sTitle").textContent=title;
+  const l=$("#sList");l.innerHTML="";
+  items.forEach(it=>{
+    const b=document.createElement("button");b.className="item";
+    b.innerHTML="<b></b>"+(it.sub?"<small></small>":"");
+    b.firstChild.textContent=it.label;
+    if(it.sub)b.lastChild.textContent=it.sub;
+    b.onclick=()=>{if(!it.keep)close();it.fn()};
+    l.appendChild(b);
+  });
+  scrim.classList.add("open");
+}
+function close(){scrim.classList.remove("open");ta.focus({preventScroll:true})}
+scrim.addEventListener("click",e=>{if(e.target===scrim)close()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});
+
+const SNIPS=[
+["Function","function name(arg)\n\t\nend",'function name(arg) … end'],
+["If / else","if condition then\n\t\nelse\n\t\nend",'if … then … else … end'],
+["Numeric for","for i = 1, 10 do\n\t\nend",'for i = 1, 10 do'],
+["Pairs loop","for key, value in pairs(tbl) do\n\t\nend",'for key, value in pairs()'],
+["While loop with wait","while true do\n\ttask.wait(1)\n\t\nend",'while true do task.wait()'],
+["Get a service",'local Players = game:GetService("Players")','game:GetService()'],
+["Heartbeat loop","RunService.Heartbeat:Connect(function(dt)\n\t\nend)",'RunService.Heartbeat'],
+["Touched event","part.Touched:Connect(function(hit)\n\tlocal humanoid = hit.Parent:FindFirstChildOfClass(\"Humanoid\")\n\tif humanoid then\n\t\t\n\tend\nend)",'part.Touched:Connect()'],
+["Create a part",'local part = Instance.new("Part")\npart.Size = Vector3.new(4, 1, 4)\npart.Anchored = true\npart.Position = Vector3.new(0, 10, 0)\npart.Parent = workspace','Instance.new("Part")'],
+["Remote event (server)",'local remote = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvent")\n\nremote.OnServerEvent:Connect(function(player, ...)\n\t\nend)','OnServerEvent'],
+["Tween a property",'local TweenService = game:GetService("TweenService")\nlocal info = TweenInfo.new(1, Enum.EasingStyle.Quad)\nTweenService:Create(part, info, {Transparency = 1}):Play()','TweenService:Create()'],
+["Typed function","local function add(a: number, b: number): number\n\treturn a + b\nend",'a: number, b: number'],
+["Module script","local Module = {}\n\nfunction Module.run()\n\t\nend\n\nreturn Module",'return Module']
+];
+$("#bSnip").onclick=()=>sheet("Snippets",SNIPS.map(([label,code,sub])=>({label,sub,fn:()=>ins(code)})));
+
+/* ---------- actions ---------- */
+const toastEl=$("#toast");let tt;
+function toast(m){toastEl.textContent=m;toastEl.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove("show"),1600)}
+function copy(){
+  const v=ta.value;
+  const fb=()=>{ta.select();document.execCommand("copy");ta.setSelectionRange(v.length,v.length);toast("Copied")};
+  if(navigator.clipboard&&window.isSecureContext)navigator.clipboard.writeText(v).then(()=>toast("Copied"),fb);else fb();
+}
+function download(){
+  const f=cur(),n=/\.(lua|luau)$/i.test(f.name)?f.name:f.name+".lua";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([f.code],{type:"text/plain"}));a.download=n;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast("Downloaded "+n);
+}
+function newFile(){
+  const id=S.next++;S.files.push({id,name:"script"+id+".lua",code:""});S.active=id;load();save();ta.focus();
+}
+function rename(){
+  const n=prompt("Script name",cur().name);
+  if(n&&n.trim()){cur().name=n.trim();renderTabs();save()}
+}
+function remove(){
+  if(!confirm("Delete "+cur().name+"?"))return;
+  S.files=S.files.filter(f=>f.id!==S.active);
+  if(!S.files.length)S.files.push({id:S.next++,name:"main.lua",code:""});
+  S.active=S.files[0].id;load();save();
+}
+function size(d){
+  const c=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--fs"))||16;
+  S.fs=Math.min(24,Math.max(11,c+d));
+  document.documentElement.style.setProperty("--fs",S.fs+"px");save();paint();
+}
+function theme(){
+  const r=document.documentElement,dark=getComputedStyle(r).getPropertyValue("--bg").trim()==="#12141c";
+  r.dataset.theme=dark?"light":"dark";
+  document.querySelector('meta[name="theme-color"]').content=dark?"#f6f7fb":"#12141c";
+}
+$("#bCopy").onclick=copy;
+$("#bMenu").onclick=()=>sheet("More",[
+  {label:"Download .lua file",fn:download},
+  {label:"Rename script",fn:rename},
+  {label:"Delete script",fn:remove},
+  {label:"Larger text",keep:true,fn:()=>size(1)},
+  {label:"Smaller text",keep:true,fn:()=>size(-1)},
+  {label:"Switch light / dark",fn:theme}
+]);
+
+load();
+})();
+</script>
+</body>
+</html>
